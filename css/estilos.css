@@ -1,0 +1,320 @@
+/* ==========================================================
+   Campus Weather - Hoja de estilos
+   Contenido:
+     1. Variables      5. Estados (inicial, cargando, error)
+     2. Base           6. Tarjeta del clima actual
+     3. Cabecera       7. Pronóstico
+     4. Paneles/forms  8. Favoritas   9. Responsive
+   ========================================================== */
+
+/* ---------- 1. VARIABLES ---------- */
+:root {
+  --morado-900: #2a1057;
+  --morado-700: #4a1f96;
+  --morado-500: #7c3aed;
+  --morado-300: #b79cf5;
+  --morado-100: #ece4fd;
+  --fondo: #f6f3fc;
+  --blanco: #ffffff;
+  --texto: #2b2340;
+  --texto-suave: #6b6285;
+  --borde: #ddd3f3;
+  --error: #c2255c;
+
+  --radio: 12px;
+  --fuente: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+}
+
+/* ---------- 2. BASE ---------- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* IMPORTANTE: el atributo [hidden] pierde contra reglas como
+   ".estado { display: flex }". Con !important garantizamos que
+   JavaScript pueda ocultar/mostrar los estados con `elemento.hidden`. */
+[hidden] { display: none !important; }
+
+body {
+  font-family: var(--fuente);
+  background: var(--fondo);
+  color: var(--texto);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3 { line-height: 1.2; }
+ul { list-style: none; }
+
+:focus-visible {
+  outline: 3px solid var(--morado-300);
+  outline-offset: 2px;
+}
+
+/* ---------- 3. CABECERA ---------- */
+.cabecera {
+  background: linear-gradient(135deg, var(--morado-900), var(--morado-700));
+  color: var(--blanco);
+  padding: 32px 20px 60px;
+}
+
+.cabecera__contenido { max-width: 1000px; margin: 0 auto; }
+.cabecera__titulo { font-size: clamp(1.8rem, 5vw, 2.6rem); font-weight: 800; }
+.cabecera__subtitulo { color: var(--morado-300); font-size: 1.05rem; margin-top: 4px; }
+
+.contenedor {
+  width: 100%;
+  max-width: 1000px;
+  margin: -36px auto 0;      /* sube para solapar con la cabecera */
+  padding: 0 20px 40px;
+  flex: 1;
+}
+
+/* ---------- 4. PANELES, FORMULARIO Y BOTONES ---------- */
+.panel {
+  background: var(--blanco);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 20px;
+}
+
+.consulta { box-shadow: 0 8px 24px rgba(42, 16, 87, 0.12); margin-bottom: 24px; }
+.consulta h2 { font-size: 1.15rem; color: var(--morado-900); margin-bottom: 14px; }
+
+.consulta__form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.campo { flex: 1 1 240px; }
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--morado-700);
+  margin-bottom: 4px;
+}
+
+select {
+  width: 100%;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--texto);
+  background: var(--blanco);
+  border: 1.5px solid var(--borde);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--morado-500);
+  box-shadow: 0 0 0 3px var(--morado-100);
+}
+
+.boton {
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 18px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.boton--primario { background: var(--morado-500); color: var(--blanco); }
+.boton--primario:hover { background: var(--morado-700); }
+
+.boton--suave { background: var(--morado-100); color: var(--morado-700); }
+.boton--suave:hover:not(:disabled) { background: var(--morado-300); color: var(--morado-900); }
+.boton:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ---------- Distribución principal ---------- */
+.disposicion {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ---------- 5. ESTADOS: inicial, cargando y error ---------- */
+.estado {
+  background: var(--blanco);
+  border: 2px dashed var(--borde);
+  border-radius: var(--radio);
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--texto-suave);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.estado__icono { font-size: 2.4rem; }
+
+.estado--error { border-color: var(--error); border-style: solid; color: var(--texto); }
+.estado--error h3 { color: var(--error); }
+
+/* Círculo giratorio hecho solo con CSS */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--morado-100);
+  border-top-color: var(--morado-500);
+  border-radius: 50%;
+  animation: girar 0.9s linear infinite;
+}
+
+@keyframes girar { to { transform: rotate(360deg); } }
+
+/* ---------- 6. TARJETA DEL CLIMA ACTUAL ---------- */
+/* El fondo cambia según el atributo data-grupo, que JavaScript
+   asigna con: tarjeta.dataset.grupo = "lluvia" (ver pintarActual). */
+.actual {
+  --degradado: linear-gradient(135deg, #6d28d9, #c2410c);
+  background: var(--degradado);
+  color: var(--blanco);
+  border-radius: var(--radio);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.actual[data-grupo="despejado"] { --degradado: linear-gradient(135deg, #6d28d9, #c2410c); }
+.actual[data-grupo="nublado"]   { --degradado: linear-gradient(135deg, #3f3d63, #6b6890); }
+.actual[data-grupo="lluvia"]    { --degradado: linear-gradient(135deg, #312e81, #2563eb); }
+.actual[data-grupo="tormenta"]  { --degradado: linear-gradient(135deg, #1a1033, #5b21b6); }
+.actual[data-grupo="nieve"]     { --degradado: linear-gradient(135deg, #3b4f9a, #6d7fc7); }
+
+.actual__cabecera h2 { font-size: 1.5rem; }
+.actual__cabecera p { opacity: 0.85; font-size: 0.92rem; text-transform: capitalize; }
+
+.actual__principal {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 18px 0;
+}
+
+.actual__icono { font-size: 4.2rem; line-height: 1; }
+.actual__temp { font-size: 3.6rem; font-weight: 800; line-height: 1; }
+.actual__unidad { font-size: 1.6rem; font-weight: 600; margin-left: 2px; }
+.actual__condicion { font-size: 1.1rem; margin-top: 4px; }
+
+.actual__detalles {
+  display: flex;
+  gap: 32px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.actual__detalles dt { font-size: 0.82rem; opacity: 0.8; }
+.actual__detalles dd { font-size: 1.2rem; font-weight: 700; }
+
+/* ---------- 7. PRONÓSTICO ---------- */
+.panel h3 { color: var(--morado-900); font-size: 1.05rem; margin-bottom: 14px; }
+
+.pronostico {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+.dia {
+  background: var(--morado-100);
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.dia__nombre { font-weight: 700; color: var(--morado-700); text-transform: capitalize; }
+.dia__icono { font-size: 2rem; margin: 4px 0; }
+.dia__temps { font-size: 0.95rem; }
+.dia__max { font-weight: 700; }
+.dia__min { color: var(--texto-suave); }
+
+/* ---------- 8. FAVORITAS ---------- */
+.favoritas h2 { font-size: 1.1rem; color: var(--morado-900); margin-bottom: 12px; }
+
+.contador {
+  display: inline-block;
+  min-width: 24px;
+  padding: 0 8px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: var(--morado-500);
+  color: var(--blanco);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.favoritas__vacio { color: var(--texto-suave); font-size: 0.92rem; }
+.favoritas__lista { display: flex; flex-direction: column; gap: 8px; }
+
+.favorita {
+  display: flex;
+  align-items: stretch;
+  border: 1.5px solid var(--borde);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.favorita__ciudad {
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--morado-700);
+  background: var(--blanco);
+  border: none;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.favorita__ciudad:hover { background: var(--morado-100); }
+
+.favorita__quitar {
+  font-family: inherit;
+  font-weight: 700;
+  color: var(--error);
+  background: var(--blanco);
+  border: none;
+  border-left: 1.5px solid var(--borde);
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.favorita__quitar:hover { background: #fde4ec; }
+
+.nota { margin-top: 14px; font-size: 0.8rem; color: var(--texto-suave); }
+
+/* ---------- Pie ---------- */
+.pie {
+  text-align: center;
+  padding: 18px;
+  background: var(--morado-900);
+  color: var(--morado-300);
+  font-size: 0.85rem;
+}
+
+/* ---------- 9. RESPONSIVE ---------- */
+@media (max-width: 800px) {
+  .disposicion { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .actual__temp { font-size: 3rem; }
+  .actual__icono { font-size: 3.4rem; }
+  .boton { width: 100%; }
+}
+
+/* Respeta a quien prefiere sin animaciones */
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation-duration: 3s; }
+  .boton { transition: none; }
+}

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Campus Weather: consulta el clima de tu ciudad y guarda tus favoritas.">
+  <title>Campus Weather | Asistente meteorológico universitario</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+  <!-- ===== ENCABEZADO ===== -->
+  <header class="cabecera">
+    <div class="cabecera__contenido">
+      <h1 class="cabecera__titulo">Campus Weather</h1>
+      <p class="cabecera__subtitulo">Asistente meteorológico universitario</p>
+    </div>
+  </header>
+
+  <main class="contenedor">
+
+    <!-- ===== 1. CONSULTA: el usuario elige una ciudad (RF01) ===== -->
+    <section class="panel consulta" aria-labelledby="tituloConsulta">
+      <h2 id="tituloConsulta">¿De qué ciudad quieres saber el clima?</h2>
+
+      <form id="formConsulta" class="consulta__form" novalidate>
+        <div class="campo">
+          <label for="selectCiudad">Ciudad</label>
+          <!-- Las <option> se generan desde JavaScript (arreglo CIUDADES en app.js) -->
+          <select id="selectCiudad" required>
+            <option value="" disabled selected>Selecciona una ciudad</option>
+          </select>
+        </div>
+
+        <button type="submit" class="boton boton--primario" id="btnConsultar">Consultar clima</button>
+        <button type="button" class="boton boton--suave" id="btnFavorito" disabled aria-pressed="false">
+          ☆ Agregar a favoritos
+        </button>
+      </form>
+    </section>
+
+    <div class="disposicion">
+
+      <!-- ===== 2. RESULTADOS: cuatro estados, solo uno visible a la vez ===== -->
+      <!-- aria-live="polite": los lectores de pantalla anuncian los cambios -->
+      <section class="resultados" id="zonaResultados" aria-live="polite" aria-busy="false">
+
+        <!-- Estado INICIAL (vacío) -->
+        <div class="estado" id="estadoInicial">
+          <p class="estado__icono" aria-hidden="true">🌤️</p>
+          <p>Elige una ciudad para ver su clima actual y el pronóstico de los próximos días.</p>
+        </div>
+
+        <!-- Estado CARGANDO (RF03) -->
+        <div class="estado" id="estadoCargando" hidden>
+          <span class="spinner" aria-hidden="true"></span>
+          <p>Consultando...</p>
+        </div>
+
+        <!-- Estado ERROR (RF05) -->
+        <div class="estado estado--error" id="estadoError" role="alert" hidden>
+          <p class="estado__icono" aria-hidden="true">⚠️</p>
+          <h3>No pudimos obtener el clima</h3>
+          <p id="mensajeError"></p>
+          <button type="button" class="boton boton--primario" id="btnReintentar">Reintentar</button>
+        </div>
+
+        <!-- Estado ÉXITO (RF04): JavaScript rellena estos elementos -->
+        <div id="resultado" hidden>
+
+          <article class="actual" id="tarjetaActual" data-grupo="despejado">
+            <header class="actual__cabecera">
+              <h2 id="ciudadNombre">Ciudad</h2>
+              <p id="fechaHora">Fecha y hora</p>
+            </header>
+
+            <div class="actual__principal">
+              <span class="actual__icono" id="iconoClima" aria-hidden="true">☀️</span>
+              <div>
+                <p class="actual__temp"><span id="temperatura">--</span><span class="actual__unidad">°C</span></p>
+                <p class="actual__condicion" id="condicion">Condición</p>
+              </div>
+            </div>
+
+            <dl class="actual__detalles">
+              <div>
+                <dt>Humedad</dt>
+                <dd><span id="humedad">--</span> %</dd>
+              </div>
+              <div>
+                <dt>Viento</dt>
+                <dd><span id="viento">--</span> km/h</dd>
+              </div>
+            </dl>
+          </article>
+
+          <section class="panel" aria-labelledby="tituloPronostico">
+            <h3 id="tituloPronostico">Pronóstico de los próximos días</h3>
+            <ul class="pronostico" id="pronostico"></ul>
+          </section>
+
+        </div>
+      </section>
+
+      <!-- ===== 3. FAVORITAS (RF06): solo durante la sesión ===== -->
+      <aside class="panel favoritas" aria-labelledby="tituloFavoritos">
+        <h2 id="tituloFavoritos">Favoritas <span class="contador" id="contadorFavoritos">0</span></h2>
+
+        <p class="favoritas__vacio" id="favoritosVacio">
+          Aún no guardaste ninguna ciudad. Consulta una y pulsa «Agregar a favoritos».
+        </p>
+
+        <ul class="favoritas__lista" id="listaFavoritos"></ul>
+
+        <p class="nota">Se guardan solo mientras esta página esté abierta.</p>
+      </aside>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <p>Campus Weather · Práctica calificada de Ingeniería de Software · Datos: Open-Meteo</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

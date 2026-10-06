@@ -7,9 +7,9 @@ Práctica calificada EP · Ingeniería de Software · Universidad Continental
 **Integrantes del equipo**
 
 1. William Andree Rojas Zuñiga
-2. _(completar)_
-3. _(completar)_
-4. _(completar)_
+2. Jheanpool Rivera Flores 
+3. Ramos Ore Dennis Jhordan
+
 
 **Repositorio:** _(pegar aquí la ruta del repositorio)_
 
